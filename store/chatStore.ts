@@ -54,15 +54,25 @@ export const useChatStore = create<ChatState>((set) => ({
   addRoom: (room) => set((s) => ({ rooms: [room, ...s.rooms] })),
 
   addMessage: (roomId, message) =>
-    set((s) => ({
-      messages: {
-        ...s.messages,
-        [roomId]: [...(s.messages[roomId] || []), message],
-      },
-      rooms: s.rooms.map((r) =>
-        r._id === roomId ? { ...r, lastMessage: message, updatedAt: message.createdAt } : r
-      ).sort((a, b) => new Date(b.updatedAt).getTime() - new Date(a.updatedAt).getTime()),
-    })),
+    set((s) => {
+      const existing = s.messages[roomId] || [];
+      // Remove optimistic message with same temp ID if it exists
+      const filtered = existing.filter(m => !(m._id === message._id && m._id.startsWith('temp-')));
+      // Also remove any optimistic messages with same content sent within 1 second
+      const deduped = filtered.filter(m => 
+        !(m._id.startsWith('temp-') && m.content === message.content && 
+          new Date(m.createdAt).getTime() > new Date(message.createdAt).getTime() - 1000)
+      );
+      return {
+        messages: {
+          ...s.messages,
+          [roomId]: [...deduped, message],
+        },
+        rooms: s.rooms.map((r) =>
+          r._id === roomId ? { ...r, lastMessage: message, updatedAt: message.createdAt } : r
+        ).sort((a, b) => new Date(b.updatedAt).getTime() - new Date(a.updatedAt).getTime()),
+      };
+    }),
 
   setMessages: (roomId, messages) =>
     set((s) => ({ messages: { ...s.messages, [roomId]: messages } })),

@@ -1,6 +1,8 @@
 'use client';
 import { useState, useRef, useCallback } from 'react';
 import { getSocket } from '@/hooks/useSocket';
+import { useAuthStore } from '@/store/authStore';
+import { useChatStore } from '@/store/chatStore';
 
 interface Props { room: any; }
 
@@ -9,6 +11,8 @@ export default function MessageInput({ room }: Props) {
   const [sending, setSending] = useState(false);
   const typingTimeoutRef = useRef<NodeJS.Timeout>();
   const isTypingRef = useRef(false);
+  const { user } = useAuthStore();
+  const { addMessage } = useChatStore();
 
   const handleTyping = useCallback(() => {
     const socket = getSocket();
@@ -28,7 +32,7 @@ export default function MessageInput({ room }: Props) {
 
   const handleSend = useCallback(async () => {
     const trimmed = message.trim();
-    if (!trimmed || sending) return;
+    if (!trimmed || sending || !user) return;
 
     const socket = getSocket();
     if (!socket) return;
@@ -40,10 +44,22 @@ export default function MessageInput({ room }: Props) {
       socket.emit('typing:stop', { roomId: room._id });
     }
 
+    // Optimistic update: add message to store immediately
+    const optimisticMessage = {
+      _id: `temp-${Date.now()}`,
+      room: room._id,
+      sender: { _id: user._id, username: user.username, avatar: user.avatar },
+      content: trimmed,
+      type: 'text',
+      readBy: [user._id],
+      createdAt: new Date().toISOString(),
+    };
+    addMessage(room._id, optimisticMessage);
+
     socket.emit('message:send', { roomId: room._id, content: trimmed });
     setMessage('');
     setSending(false);
-  }, [message, room._id, sending]);
+  }, [message, room._id, sending, user, addMessage]);
 
   const handleKeyDown = (e: React.KeyboardEvent) => {
     if (e.key === 'Enter' && !e.shiftKey) {
