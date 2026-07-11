@@ -8,10 +8,12 @@
     "build": "next build",
     "start": "next start",
     "server": "node server/index.js",
-    "dev:all": "concurrently \"next dev\" \"node server/index.js\""
+    "start:prod": "NODE_ENV=production node server/index.js",
+    "dev:all": "concurrently \"next dev\" \"node server/index.js\"",
+    "lint": "npx tsc --noEmit"
   },
   "dependencies": {
-    "next": "14.2.3",
+    "next": "14.2.35",
     "react": "^18.3.0",
     "react-dom": "^18.3.0",
     "socket.io": "^4.7.5",
@@ -27,7 +29,12 @@
     "concurrently": "^8.2.2",
     "express": "^4.19.2",
     "cors": "^2.8.5",
-    "dotenv": "^16.4.5"
+    "dotenv": "^16.4.5",
+    "helmet": "^7.0.0",
+    "express-rate-limit": "^6.9.0",
+    "pino": "^8.20.0",
+    "redis": "^6.1.0",
+    "@socket.io/redis-adapter": "^7.0.0"
   },
   "devDependencies": {
     "@types/node": "^20.14.2",
@@ -36,6 +43,7 @@
     "autoprefixer": "^10.4.19",
     "postcss": "^8.4.38",
     "tailwindcss": "^3.4.4",
-    "typescript": "^5.4.5"
+    "typescript": "^5.4.5",
+    "pino-pretty": "^9.0.0"
   }
 }

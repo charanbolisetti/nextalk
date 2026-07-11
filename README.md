@@ -73,6 +73,17 @@ npm run dev:all
 
 Open [http://localhost:3000](http://localhost:3000) to view the app.
 
+## 🐳 Docker & local production
+
+```bash
+# Start backend, frontend, MongoDB and Redis locally
+docker compose up --build
+```
+
+Then open [http://localhost:3000](http://localhost:3000).
+
+Use the local `.env` file or copy `.env.example` before running Docker.
+
 ## 📁 Project Structure
 
 ```
